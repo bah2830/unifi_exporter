@@ -36,7 +36,7 @@ func NewStationCollector(c *unifi.Client, sites []*unifi.Site) *StationCollector
 	)
 
 	var (
-		labelsSiteOnly = []string{"site"}
+		labelsSiteOnly = []string{"site", "connection"}
 		labelsStation  = []string{
 			"site",
 			"id",
@@ -112,11 +112,28 @@ func (c *StationCollector) collect(ch chan<- prometheus.Metric) (*prometheus.Des
 			return c.Stations, err
 		}
 
+		var wiredCount, wirelessCount float64
+		for _, station := range stations {
+			if station.IsWired {
+				wiredCount++
+			} else {
+				wirelessCount++
+			}
+		}
+
 		ch <- prometheus.MustNewConstMetric(
 			c.Stations,
 			prometheus.GaugeValue,
-			float64(len(stations)),
+			wiredCount,
 			s.Description,
+			"wired",
+		)
+		ch <- prometheus.MustNewConstMetric(
+			c.Stations,
+			prometheus.GaugeValue,
+			wirelessCount,
+			s.Description,
+			"wireless",
 		)
 
 		c.collectStationBytes(ch, s.Description, stations)
