@@ -1,4 +1,4 @@
-module github.com/mdlayher/unifi_exporter
+module github.com/bah2830/unifi_exporter
 
 go 1.12
 
@@ -8,7 +8,6 @@ require (
 	github.com/golang/protobuf v0.0.0-20160817174113-f592bd283e9e // indirect
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
-	github.com/mdlayher/unifi v0.0.0-20170805181715-3b086eeb4737
 	github.com/prometheus/client_golang v0.0.0-20161017123536-334af0119a8f
 	github.com/prometheus/client_model v0.0.0-20150212101744-fa8ad6fec335 // indirect
 	github.com/prometheus/common v0.0.0-20160801171955-ebdfc6da4652 // indirect

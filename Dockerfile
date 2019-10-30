@@ -1,12 +1,11 @@
-FROM alpine:latest
+FROM golang:latest
+
+# ENV GO111MODULE=on
+
+WORKDIR /app
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o unifi_exporter ./cmd/unifi_exporter/main.go
 
 EXPOSE 9130
-
-RUN apk add --update --virtual build-deps go git musl-dev && \
-    go get github.com/mdlayher/unifi_exporter/cmd/unifi_exporter && \
-    mv ~/go/bin/unifi_exporter /bin/ && \
-    apk del build-deps && \
-    rm -rf /var/cache/apk/* ~/go/
-
-USER nobody
-ENTRYPOINT ["/bin/unifi_exporter"]
+ENTRYPOINT ["/app/unifi_exporter"]

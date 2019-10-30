@@ -1,7 +1,7 @@
-.PHONY: all 
+.PHONY: all build docker
 
 build:
-	go build ./cmd/unifi_exporter
+	go build -mod=vendor ./cmd/unifi_exporter
 
 docker:
-	docker build -t mdlayher/unifi_exporter .
+	docker build -t unifi_exporter .

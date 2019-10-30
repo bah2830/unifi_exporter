@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mdlayher/unifi"
-	"github.com/mdlayher/unifi_exporter"
+	"github.com/bah2830/unifi_exporter/pkg/unifi/api"
+	"github.com/bah2830/unifi_exporter/pkg/unifi/exporter"
 	"github.com/prometheus/client_golang/prometheus"
 	"gopkg.in/yaml.v2"
 )
@@ -25,7 +25,7 @@ type Config struct {
 
 const (
 	// userAgent is ther user agent reported to the UniFi Controller API.
-	userAgent = "github.com/mdlayher/unifi_exporter"
+	userAgent = "github.com/bah2830/unifi_exporter"
 )
 
 func main() {
@@ -57,7 +57,7 @@ func main() {
 		}
 	}
 
-	timeout := 5*time.Second
+	timeout := 5 * time.Second
 	if to, ok := config.Unifi["timeout"]; ok {
 		timeout, err = time.ParseDuration(to)
 		if err != nil {
@@ -104,7 +104,7 @@ func main() {
 		log.Fatalf("failed to select a site: %v", err)
 	}
 
-	e, err := unifiexporter.New(useSites, clientFn)
+	e, err := exporter.New(useSites, clientFn)
 	if err != nil {
 		log.Fatalf("failed to create exporter: %v", err)
 	}
@@ -125,12 +125,12 @@ func main() {
 
 // pickSites attempts to find a site with a description matching the value
 // specified in choose.  If choose is empty, all sites are returned.
-func pickSites(choose string, sites []*unifi.Site) ([]*unifi.Site, error) {
+func pickSites(choose string, sites []*api.Site) ([]*api.Site, error) {
 	if choose == "" {
 		return sites, nil
 	}
 
-	var pick *unifi.Site
+	var pick *api.Site
 	for _, s := range sites {
 		if s.Description == choose {
 			pick = s
@@ -141,12 +141,12 @@ func pickSites(choose string, sites []*unifi.Site) ([]*unifi.Site, error) {
 		return nil, fmt.Errorf("site with description %q was not found in UniFi Controller", choose)
 	}
 
-	return []*unifi.Site{pick}, nil
+	return []*api.Site{pick}, nil
 }
 
 // sitesString returns a comma-separated string of site descriptions, meant
 // for displaying to users.
-func sitesString(sites []*unifi.Site) string {
+func sitesString(sites []*api.Site) string {
 	ds := make([]string, 0, len(sites))
 	for _, s := range sites {
 		ds = append(ds, s.Description)
@@ -156,14 +156,14 @@ func sitesString(sites []*unifi.Site) string {
 }
 
 // newClient returns a unifiexporter.ClientFunc using the input parameters.
-func newClient(addr, username, password string, insecure bool, timeout time.Duration) unifiexporter.ClientFunc {
-	return func() (*unifi.Client, error) {
+func newClient(addr, username, password string, insecure bool, timeout time.Duration) exporter.ClientFunc {
+	return func() (*api.Client, error) {
 		httpClient := &http.Client{Timeout: timeout}
 		if insecure {
-			httpClient = unifi.InsecureHTTPClient(timeout)
+			httpClient = api.InsecureHTTPClient(timeout)
 		}
 
-		c, err := unifi.NewClient(addr, httpClient)
+		c, err := api.NewClient(addr, httpClient)
 		if err != nil {
 			return nil, fmt.Errorf("cannot create UniFi Controller client: %v", err)
 		}

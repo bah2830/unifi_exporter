@@ -6,26 +6,26 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mdlayher/unifi"
+	"github.com/bah2830/unifi_exporter/pkg/unifi/api"
 )
 
 func Test_pickSites(t *testing.T) {
 	var tests = []struct {
 		desc   string
 		choose string
-		sites  []*unifi.Site
-		pick   []*unifi.Site
+		sites  []*api.Site
+		pick   []*api.Site
 		err    error
 	}{
 		{
 			desc:   "no site chosen",
 			choose: "",
-			sites: []*unifi.Site{
+			sites: []*api.Site{
 				{Description: "foo"},
 				{Description: "bar"},
 				{Description: "baz"},
 			},
-			pick: []*unifi.Site{
+			pick: []*api.Site{
 				{Description: "foo"},
 				{Description: "bar"},
 				{Description: "baz"},
@@ -34,19 +34,19 @@ func Test_pickSites(t *testing.T) {
 		{
 			desc:   "one valid site chosen",
 			choose: "bar",
-			sites: []*unifi.Site{
+			sites: []*api.Site{
 				{Description: "foo"},
 				{Description: "bar"},
 				{Description: "baz"},
 			},
-			pick: []*unifi.Site{
+			pick: []*api.Site{
 				{Description: "bar"},
 			},
 		},
 		{
 			desc:   "one invalid site chosen",
 			choose: "qux",
-			sites: []*unifi.Site{
+			sites: []*api.Site{
 				{Description: "foo"},
 				{Description: "bar"},
 				{Description: "baz"},
@@ -84,20 +84,20 @@ func errStr(err error) string {
 
 func Test_sitesString(t *testing.T) {
 	var tests = []struct {
-		sites []*unifi.Site
+		sites []*api.Site
 		out   string
 	}{
 		{
 			out: "",
 		},
 		{
-			sites: []*unifi.Site{{
+			sites: []*api.Site{{
 				Description: "Foo",
 			}},
 			out: "Foo",
 		},
 		{
-			sites: []*unifi.Site{
+			sites: []*api.Site{
 				{Description: "Foo"},
 				{Description: "Bar"},
 				{Description: "Baz"},
