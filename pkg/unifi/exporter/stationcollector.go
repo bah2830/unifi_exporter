@@ -149,7 +149,12 @@ func hostName(s *api.Station) string {
 	if s.Name != "" {
 		return s.Name
 	}
-	return s.Hostname
+
+	if s.Hostname != "" {
+		return s.Hostname
+	}
+
+	return s.MAC.String()
 }
 
 // connType returns a string indicating if a station is connected using a wired
