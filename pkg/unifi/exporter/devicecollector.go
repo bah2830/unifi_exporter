@@ -106,7 +106,7 @@ func NewDeviceCollector(c *api.Client, sites []*api.Site) *DeviceCollector {
 
 		TransmittedDroppedTotal: prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, subsystem, "transmitted_packets_dropped_total"),
-			"Number of packets which are dropped on wireless transmission by devices",
+			"Number of packets which are dropped on transmission by devices",
 			labelsDevice,
 			nil,
 		),
@@ -209,55 +209,55 @@ func (c *DeviceCollector) collectDeviceBytes(ch chan<- prometheus.Metric, siteLa
 			c.ReceivedBytesTotal,
 			prometheus.CounterValue,
 			float64(d.Stats.All.ReceiveBytes),
-			append(labels, "wireless")...,
+			append(labels, "user")...,
 		)
 		ch <- prometheus.MustNewConstMetric(
 			c.TransmittedBytesTotal,
 			prometheus.CounterValue,
 			float64(d.Stats.All.TransmitBytes),
-			append(labels, "wireless")...,
+			append(labels, "user")...,
 		)
 		ch <- prometheus.MustNewConstMetric(
 			c.ReceivedPacketsTotal,
 			prometheus.CounterValue,
 			float64(d.Stats.All.ReceivePackets),
-			append(labels, "wireless")...,
+			append(labels, "user")...,
 		)
 		ch <- prometheus.MustNewConstMetric(
 			c.TransmittedPacketsTotal,
 			prometheus.CounterValue,
 			float64(d.Stats.All.TransmitPackets),
-			append(labels, "wireless")...,
+			append(labels, "user")...,
 		)
 		ch <- prometheus.MustNewConstMetric(
 			c.TransmittedDroppedTotal,
 			prometheus.CounterValue,
 			float64(d.Stats.All.TransmitDropped),
-			append(labels, "wireless")...,
+			append(labels, "user")...,
 		)
 		ch <- prometheus.MustNewConstMetric(
 			c.ReceivedBytesTotal,
 			prometheus.CounterValue,
 			float64(d.Stats.Uplink.ReceiveBytes),
-			append(labels, "wired")...,
+			append(labels, "uplink")...,
 		)
 		ch <- prometheus.MustNewConstMetric(
 			c.TransmittedBytesTotal,
 			prometheus.CounterValue,
 			float64(d.Stats.Uplink.TransmitBytes),
-			append(labels, "wired")...,
+			append(labels, "uplink")...,
 		)
 		ch <- prometheus.MustNewConstMetric(
 			c.ReceivedPacketsTotal,
 			prometheus.CounterValue,
 			float64(d.Stats.Uplink.ReceivePackets),
-			append(labels, "wired")...,
+			append(labels, "uplink")...,
 		)
 		ch <- prometheus.MustNewConstMetric(
 			c.TransmittedPacketsTotal,
 			prometheus.CounterValue,
 			float64(d.Stats.Uplink.TransmitPackets),
-			append(labels, "wired")...,
+			append(labels, "uplink")...,
 		)
 	}
 }

@@ -79,10 +79,6 @@ type DeviceStats struct {
 	Uplink     *WiredStats
 }
 
-func (s *DeviceStats) String() string {
-	return fmt.Sprintf("%v", *s)
-}
-
 // WirelessStats contains wireless device network activity statistics.
 type WirelessStats struct {
 	ReceiveBytes    float64
@@ -92,20 +88,12 @@ type WirelessStats struct {
 	TransmitPackets float64
 }
 
-func (s *WirelessStats) String() string {
-	return fmt.Sprintf("%v", *s)
-}
-
 // WiredStats contains wired device network activity statistics.
 type WiredStats struct {
 	ReceiveBytes    float64
 	ReceivePackets  float64
 	TransmitBytes   float64
 	TransmitPackets float64
-}
-
-func (s *WiredStats) String() string {
-	return fmt.Sprintf("%v", *s)
 }
 
 const (
@@ -188,6 +176,43 @@ func (d *Device) UnmarshalJSON(b []byte) error {
 		radios = append(radios, r)
 	}
 
+	var allStats, userStats *WirelessStats
+	var totalBytes float64
+	switch dev.Type {
+	case "uap":
+		totalBytes = dev.Stat.Ap.Bytes
+		allStats = &WirelessStats{
+			ReceiveBytes:    dev.Stat.Ap.RxBytes,
+			ReceivePackets:  dev.Stat.Ap.RxPackets,
+			TransmitBytes:   dev.Stat.Ap.TxBytes,
+			TransmitDropped: dev.Stat.Ap.TxDropped,
+			TransmitPackets: dev.Stat.Ap.TxPackets,
+		}
+		userStats = &WirelessStats{
+			ReceiveBytes:    dev.Stat.Ap.UserRxBytes,
+			ReceivePackets:  dev.Stat.Ap.UserRxPackets,
+			TransmitBytes:   dev.Stat.Ap.UserTxBytes,
+			TransmitDropped: dev.Stat.Ap.UserTxDropped,
+			TransmitPackets: dev.Stat.Ap.UserTxPackets,
+		}
+	case "ugw":
+		totalBytes = dev.Stat.Gw.Bytes
+		allStats = &WirelessStats{
+			ReceiveBytes:    dev.Stat.Gw.RxBytes,
+			ReceivePackets:  dev.Stat.Gw.RxPackets,
+			TransmitBytes:   dev.Stat.Gw.TxBytes,
+			TransmitDropped: dev.Stat.Gw.TxDropped,
+			TransmitPackets: dev.Stat.Gw.TxPackets,
+		}
+		userStats = &WirelessStats{
+			ReceiveBytes:    dev.Stat.Gw.UserRxBytes,
+			ReceivePackets:  dev.Stat.Gw.UserRxPackets,
+			TransmitBytes:   dev.Stat.Gw.UserTxBytes,
+			TransmitDropped: dev.Stat.Gw.UserTxDropped,
+			TransmitPackets: dev.Stat.Gw.UserTxPackets,
+		}
+	}
+
 	*d = Device{
 		ID:        dev.ID,
 		Adopted:   dev.Adopted,
@@ -202,21 +227,9 @@ func (d *Device) UnmarshalJSON(b []byte) error {
 		Uptime:    time.Duration(time.Duration(dev.Uptime) * time.Second),
 		Version:   dev.Version,
 		Stats: &DeviceStats{
-			TotalBytes: dev.Stat.Bytes,
-			All: &WirelessStats{
-				ReceiveBytes:    dev.Stat.RxBytes,
-				ReceivePackets:  dev.Stat.RxPackets,
-				TransmitBytes:   dev.Stat.TxBytes,
-				TransmitDropped: dev.Stat.TxDropped,
-				TransmitPackets: dev.Stat.TxPackets,
-			},
-			User: &WirelessStats{
-				ReceiveBytes:    dev.Stat.UserRxBytes,
-				ReceivePackets:  dev.Stat.UserRxPackets,
-				TransmitBytes:   dev.Stat.UserTxBytes,
-				TransmitDropped: dev.Stat.UserTxDropped,
-				TransmitPackets: dev.Stat.UserTxPackets,
-			},
+			TotalBytes: totalBytes,
+			All:        allStats,
+			User:       userStats,
 			Uplink: &WiredStats{
 				ReceiveBytes:    dev.Uplink.RxBytes,
 				ReceivePackets:  dev.Uplink.RxPackets,
@@ -292,34 +305,66 @@ type device struct {
 	Serial  string  `json:"serial,omitempty"`
 	SiteID  string  `json:"site_id"`
 	Stat    struct {
-		Bytes            float64 `json:"bytes"`
-		GuestNgTxBytes   float64 `json:"guest-ng-tx_bytes"`
-		GuestNgTxDropped float64 `json:"guest-ng-tx_dropped"`
-		GuestNgTxPackets float64 `json:"guest-ng-tx_packets"`
-		GuestTxBytes     float64 `json:"guest-tx_bytes"`
-		GuestTxDropped   float64 `json:"guest-tx_dropped"`
-		GuestTxPackets   float64 `json:"guest-tx_packets"`
-		Mac              string  `json:"mac"`
-		NgRxBytes        float64 `json:"ng-rx_bytes"`
-		NgRxPackets      float64 `json:"ng-rx_packets"`
-		NgTxBytes        float64 `json:"ng-tx_bytes"`
-		NgTxDropped      float64 `json:"ng-tx_dropped"`
-		NgTxPackets      float64 `json:"ng-tx_packets"`
-		RxBytes          float64 `json:"rx_bytes"`
-		RxPackets        float64 `json:"rx_packets"`
-		TxBytes          float64 `json:"tx_bytes"`
-		TxDropped        float64 `json:"tx_dropped"`
-		TxPackets        float64 `json:"tx_packets"`
-		UserNgRxBytes    float64 `json:"user-ng-rx_bytes"`
-		UserNgRxPackets  float64 `json:"user-ng-rx_packets"`
-		UserNgTxBytes    float64 `json:"user-ng-tx_bytes"`
-		UserNgTxDropped  float64 `json:"user-ng-tx_dropped"`
-		UserNgTxPackets  float64 `json:"user-ng-tx_packets"`
-		UserRxBytes      float64 `json:"user-rx_bytes"`
-		UserRxPackets    float64 `json:"user-rx_packets"`
-		UserTxBytes      float64 `json:"user-tx_bytes"`
-		UserTxDropped    float64 `json:"user-tx_dropped"`
-		UserTxPackets    float64 `json:"user-tx_packets"`
+		Ap struct {
+			Bytes            float64 `json:"bytes"`
+			GuestNgTxBytes   float64 `json:"guest-ng-tx_bytes"`
+			GuestNgTxDropped float64 `json:"guest-ng-tx_dropped"`
+			GuestNgTxPackets float64 `json:"guest-ng-tx_packets"`
+			GuestTxBytes     float64 `json:"guest-tx_bytes"`
+			GuestTxDropped   float64 `json:"guest-tx_dropped"`
+			GuestTxPackets   float64 `json:"guest-tx_packets"`
+			Mac              string  `json:"mac"`
+			NgRxBytes        float64 `json:"ng-rx_bytes"`
+			NgRxPackets      float64 `json:"ng-rx_packets"`
+			NgTxBytes        float64 `json:"ng-tx_bytes"`
+			NgTxDropped      float64 `json:"ng-tx_dropped"`
+			NgTxPackets      float64 `json:"ng-tx_packets"`
+			RxBytes          float64 `json:"rx_bytes"`
+			RxPackets        float64 `json:"rx_packets"`
+			TxBytes          float64 `json:"tx_bytes"`
+			TxDropped        float64 `json:"tx_dropped"`
+			TxPackets        float64 `json:"tx_packets"`
+			UserNgRxBytes    float64 `json:"user-ng-rx_bytes"`
+			UserNgRxPackets  float64 `json:"user-ng-rx_packets"`
+			UserNgTxBytes    float64 `json:"user-ng-tx_bytes"`
+			UserNgTxDropped  float64 `json:"user-ng-tx_dropped"`
+			UserNgTxPackets  float64 `json:"user-ng-tx_packets"`
+			UserRxBytes      float64 `json:"user-rx_bytes"`
+			UserRxPackets    float64 `json:"user-rx_packets"`
+			UserTxBytes      float64 `json:"user-tx_bytes"`
+			UserTxDropped    float64 `json:"user-tx_dropped"`
+			UserTxPackets    float64 `json:"user-tx_packets"`
+		}
+		Gw struct {
+			Bytes            float64 `json:"bytes"`
+			GuestNgTxBytes   float64 `json:"guest-ng-tx_bytes"`
+			GuestNgTxDropped float64 `json:"guest-ng-tx_dropped"`
+			GuestNgTxPackets float64 `json:"guest-ng-tx_packets"`
+			GuestTxBytes     float64 `json:"guest-tx_bytes"`
+			GuestTxDropped   float64 `json:"guest-tx_dropped"`
+			GuestTxPackets   float64 `json:"guest-tx_packets"`
+			Mac              string  `json:"mac"`
+			NgRxBytes        float64 `json:"ng-rx_bytes"`
+			NgRxPackets      float64 `json:"ng-rx_packets"`
+			NgTxBytes        float64 `json:"ng-tx_bytes"`
+			NgTxDropped      float64 `json:"ng-tx_dropped"`
+			NgTxPackets      float64 `json:"ng-tx_packets"`
+			RxBytes          float64 `json:"rx_bytes"`
+			RxPackets        float64 `json:"rx_packets"`
+			TxBytes          float64 `json:"tx_bytes"`
+			TxDropped        float64 `json:"tx_dropped"`
+			TxPackets        float64 `json:"tx_packets"`
+			UserNgRxBytes    float64 `json:"user-ng-rx_bytes"`
+			UserNgRxPackets  float64 `json:"user-ng-rx_packets"`
+			UserNgTxBytes    float64 `json:"user-ng-tx_bytes"`
+			UserNgTxDropped  float64 `json:"user-ng-tx_dropped"`
+			UserNgTxPackets  float64 `json:"user-ng-tx_packets"`
+			UserRxBytes      float64 `json:"user-rx_bytes"`
+			UserRxPackets    float64 `json:"user-rx_packets"`
+			UserTxBytes      float64 `json:"user-tx_bytes"`
+			UserTxDropped    float64 `json:"user-tx_dropped"`
+			UserTxPackets    float64 `json:"user-tx_packets"`
+		}
 	} `json:"stat"`
 
 	Uplink struct {
